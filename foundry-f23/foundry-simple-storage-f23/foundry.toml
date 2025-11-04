@@ -4,5 +4,11 @@ out = "out"
 libs = ["lib"]
 solc = "0.8.24"
 solc_version = "0.8.24"
+
+[rpc_endpoints]
+anvil = "http://127.0.0.1:8545"
+
+# [scripts]
+# deploy = "script/DeploySimpleStorage.s.sol"
 # https://raw.githubusercontent.com/alloy-rs/solc-builds/e4b80d33bc4d015b2fc3583e217fbf248b2014e1/macosx/aarch64/solc-v0.8.24
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
