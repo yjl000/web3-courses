@@ -10,6 +10,7 @@ error NotOwner();
 contract FundMe {
     // send funds into our contract
     uint256 public myValue = 1;
+    AggregatorV3Interface private s_priceFeed;
 
     struct FundInfo {
         uint256 amountFunded;
@@ -21,18 +22,19 @@ contract FundMe {
     mapping(address => FundInfo) public addressToFundInfo;
     uint256 public constant MINIMUM_USD = 5 * 10 ** 18;
 
-    AggregatorV3Interface priceFeed = AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306);
+    // AggregatorV3Interface priceFeed = AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306);
 
     address public /* immutable */ i_owner;
 
-    constructor() {
+    constructor(address priceFeedAddress) {
         i_owner = msg.sender;
+        s_priceFeed = AggregatorV3Interface(priceFeedAddress);
     }
 
     function fund() public payable {
         myValue = myValue + 1;
         // require(msg.value > 1e18, "didn't send enough ETH");
-        require(msg.value.getConversionRate() >= MINIMUM_USD, "didn't send enough ETH");
+        require(msg.value.getConversionRate(s_priceFeed) >= MINIMUM_USD, "didn't send enough ETH");
         addressToFundInfo[msg.sender].amountFunded += msg.value;
         addressToFundInfo[msg.sender].fundNums += 1;
         funders.push(msg.sender);
@@ -45,14 +47,17 @@ contract FundMe {
      */
 
     function getVersion() public view returns (uint256) {
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeed);
         return priceFeed.version();
     }
 
     function decimals() external view returns (uint8) {
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeed);
         return priceFeed.decimals();
     }
 
     function getLatestPrice() public view returns (uint256) {
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeed);
         (, int256 answer,,,) = priceFeed.latestRoundData();
         return uint256(answer) * 1e10;
     }
