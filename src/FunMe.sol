@@ -18,8 +18,8 @@ contract FundMe {
     }
     using PriceConverter for uint256;
     // using MathLibrary for uint256;
-    address[] public funders;
-    mapping(address => FundInfo) public addressToFundInfo;
+    address[] private s_funders;
+    mapping(address => FundInfo) private s_addressToFundInfo;
     uint256 public constant MINIMUM_USD = 5 * 10 ** 18;
 
     // AggregatorV3Interface priceFeed = AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306);
@@ -35,9 +35,9 @@ contract FundMe {
         myValue = myValue + 1;
         // require(msg.value > 1e18, "didn't send enough ETH");
         require(msg.value.getConversionRate(s_priceFeed) >= MINIMUM_USD, "didn't send enough ETH");
-        addressToFundInfo[msg.sender].amountFunded += msg.value;
-        addressToFundInfo[msg.sender].fundNums += 1;
-        funders.push(msg.sender);
+        s_addressToFundInfo[msg.sender].amountFunded += msg.value;
+        s_addressToFundInfo[msg.sender].fundNums += 1;
+        s_funders.push(msg.sender);
     }
 
     /**
@@ -74,11 +74,11 @@ contract FundMe {
 
     // owner can withdraw funds
     function withdraw() public onlyOwner {
-        for (uint256 funderIndex = 0; funderIndex < funders.length; funderIndex++) {
-            address funder = funders[funderIndex];
-            addressToFundInfo[funder].amountFunded = 0;
+        for (uint256 funderIndex = 0; funderIndex < s_funders.length; funderIndex++) {
+            address funder = s_funders[funderIndex];
+            s_addressToFundInfo[funder].amountFunded = 0;
         }
-        funders = new address[](0);
+        s_funders = new address[](0);
 
         // transfer
         // payable(msg.sender).transfer(address(this).balance);
@@ -90,6 +90,14 @@ contract FundMe {
         // call
         (bool callSuccess,) = payable(msg.sender).call{value: address(this).balance}("");
         require(callSuccess, "Call failed");
+    }
+
+    function getAddressToFundInfo(address fundingAddress) public view returns(uint256) {
+      return s_addressToFundInfo[fundingAddress].amountFunded;
+    }
+
+    function getFunder(uint index) public view returns(address) {
+      return s_funders[index];
     }
 
     // Ether is sent to contract
