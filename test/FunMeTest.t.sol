@@ -9,6 +9,7 @@ contract FundMeTest is Test {
     address alice = makeAddr("alice");
     FundMe public fundMe;
 
+    uint256 constant GAS_PRICE = 1;
     uint256 public constant SEND_VALUE = 0.1 ether;
     uint256 public constant STARTING_BALANCE = 10 ether;
 
@@ -72,9 +73,16 @@ contract FundMeTest is Test {
         uint256 startingFundMeBalance = address(fundMe).balance;
         uint256 startingOwnerBalance = fundMe.getOwner().balance;
 
+        vm.txGasPrice(GAS_PRICE);
+        uint256 gasStart = gasleft();
+
         vm.startPrank(fundMe.getOwner());
         fundMe.withdraw();
         vm.stopPrank();
+
+        uint256 gasEnd = gasleft(); // 剩余的gas数量
+        uint256 gasUsed = (gasStart - gasEnd) * tx.gasprice;
+        console.log("Withdraw consumed: %d gas", gasUsed);
 
         uint256 endingFundMeBalance = address(fundMe).balance;
         uint256 endingOwnerBalance = fundMe.getOwner().balance;
@@ -113,5 +121,14 @@ contract FundMeTest is Test {
             (numberOfFunders + 1) * SEND_VALUE ==
                 fundMe.getOwner().balance - startingOwnerBalance
         );
+    }
+
+    function testPrintStorageData() public view {
+        for (uint256 i = 0; i < 3; i++) {
+            bytes32 value = vm.load(address(fundMe), bytes32(i));
+            console.log("Value at location", i, ":");
+            console.logBytes32(value);
+        }
+        console.log("PriceFeed address:", address(fundMe.getPriceFeed()));
     }
 }

@@ -62,6 +62,9 @@ contract FundMe {
         return uint256(answer) * 1e10;
     }
 
+    function getPriceFeed() public view returns (AggregatorV3Interface) {
+        return s_priceFeed;
+    }
     // function calculateSum(uint256 num1, uint256 num2) public pure returns(uint256) {
     //     return num1.sum(num2);
     // }
