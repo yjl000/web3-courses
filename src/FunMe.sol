@@ -96,26 +96,26 @@ contract FundMe {
     }
 
     function cheaperWithdraw() public onlyOwner {
-      uint256 fundersLength = s_funders.length;
-      for (uint256 funderIndex = 0; funderIndex < fundersLength; funderIndex++) {
-        address funder = s_funders[funderIndex];
-        s_addressToFundInfo[funder].amountFunded = 0;
-      }
-      s_funders = new address[](0);
-      (bool callSuccess,) = payable(msg.sender).call{value: address(this).balance}("");
-      require(callSuccess, "Call failed");
+        uint256 fundersLength = s_funders.length;
+        for (uint256 funderIndex = 0; funderIndex < fundersLength; funderIndex++) {
+            address funder = s_funders[funderIndex];
+            s_addressToFundInfo[funder].amountFunded = 0;
+        }
+        s_funders = new address[](0);
+        (bool callSuccess,) = payable(msg.sender).call{value: address(this).balance}("");
+        require(callSuccess, "Call failed");
     }
 
-    function getAddressToFundInfo(address fundingAddress) public view returns(uint256) {
-      return s_addressToFundInfo[fundingAddress].amountFunded;
+    function getAddressToFundInfo(address fundingAddress) public view returns (uint256) {
+        return s_addressToFundInfo[fundingAddress].amountFunded;
     }
 
-    function getFunder(uint index) public view returns(address) {
-      return s_funders[index];
+    function getFunder(uint256 index) public view returns (address) {
+        return s_funders[index];
     }
 
-    function getOwner() public view returns(address) {
-      return i_owner;
+    function getOwner() public view returns (address) {
+        return i_owner;
     }
 
     // Ether is sent to contract

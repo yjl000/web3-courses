@@ -10,7 +10,7 @@ contract DeployFundMe is Script {
         vm.startBroadcast();
         HelperConfig helperConfig = new HelperConfig();
         address ethUsdPriceFeed = helperConfig.activeNetworkConfig();
-        /* 用 address 类型变量接收时，Solidity 会按规则自动取结构体的「第一个字段」—— 
+        /* 用 address 类型变量接收时，Solidity 会按规则自动取结构体的「第一个字段」——
          而 NetworkConfig 结构体恰好只有一个字段 priceFeed（address），所以最终就拿到了这个地址
          类似javaScript中的解构赋值
          */
