@@ -1,0 +1,1 @@
+how what we've built interacts with a wallet
