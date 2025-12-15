@@ -21,4 +21,9 @@ contract FundMeTest is Test {
         console.log(address(this));
         assertEq(fundMe.i_owner(), address(this));
     }
+
+    function testPriceFeedVersionIsAccurate() public {
+        uint256 version = fundMe.getVersion();
+        assertEq(version, 4);
+    }
 }
