@@ -100,6 +100,10 @@ contract FundMe {
         return s_funders[index]; 
     }
 
+    function getOwner() public view returns(address) {
+      return i_owner;
+    }
+
     // Ether is sent to contract
     //      is msg.data empty?
     //          /   \
