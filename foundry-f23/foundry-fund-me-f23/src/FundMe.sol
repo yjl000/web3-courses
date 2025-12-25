@@ -92,6 +92,17 @@ contract FundMe {
         require(callSuccess, "Call failed");
     }
 
+    function cheaperWithdraw() public onlyOwner {
+      uint256 fundersLength = s_funders.length;
+      for (uint256 funderIndex = 0; funderIndex < fundersLength; funderIndex++) {
+            address funder = s_funders[funderIndex];
+            s_addressToFundInfo[funder].amountFunded = 0;
+        }
+        s_funders = new address[](0);
+        (bool callSuccess,) = payable(msg.sender).call{value: address(this).balance}("");
+        require(callSuccess, "Call failed");
+    }
+
     function getAddressToAmountFunded(address fundingAddress) public view returns (uint256) {
         return s_addressToFundInfo[fundingAddress].amountFunded;
     }
@@ -102,6 +113,10 @@ contract FundMe {
 
     function getOwner() public view returns(address) {
       return i_owner;
+    }
+
+    function getPriceFeed() public view returns(AggregatorV3Interface) {
+      return s_priceFeed;
     }
 
     // Ether is sent to contract

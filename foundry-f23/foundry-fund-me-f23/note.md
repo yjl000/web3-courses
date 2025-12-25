@@ -14,3 +14,5 @@ Cheatcodes:
 5、makeAddr() // 创建新的用户地址
 6、vm.deal(alice, 100 ether) // 为alice设置初始余额
 7、hoax() // = deal+prank
+8、vm.txGasPrice // 为下一笔交易设置gas价格
+9、vm.load(address, bytes32) // 加载合约存储中的数据
