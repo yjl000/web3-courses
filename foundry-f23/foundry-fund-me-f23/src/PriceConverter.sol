@@ -9,6 +9,7 @@ library PriceConverter {
     ) internal view returns (uint256) {
         // AggregatorV3Interface priceFeed = AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306);
         (, int256 answer, , , ) = priceFeed.latestRoundData();
+        require(answer >= 0, "Price is negative");
         return uint256(answer) * 1e10;
     }
 

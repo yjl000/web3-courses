@@ -84,6 +84,7 @@ contract MockV3Aggregator is AggregatorV3Interface {
             uint80 answeredInRound
         )
     {
+        require(latestRound >= 0, "latestRound is negative");
         return (
             uint80(latestRound),
             getAnswer[latestRound],

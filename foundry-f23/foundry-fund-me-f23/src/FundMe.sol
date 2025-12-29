@@ -59,6 +59,7 @@ contract FundMe {
     function getLatestPrice() public view returns (uint256) {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeed);
         (, int256 answer,,,) = priceFeed.latestRoundData();
+        require(answer >= 0, "answer is negative");
         return uint256(answer) * 1e10;
     }
 
