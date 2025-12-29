@@ -2,18 +2,50 @@ import { ethers } from "./ethers-6.7.esm.min.js"
 import { abi, contractAddress } from "./constants.js"
 
 const connectButton = document.getElementById("connectButton")
+const disConnectButton = document.getElementById("disConnectButton")
 const withdrawButton = document.getElementById("withdrawButton")
 const fundButton = document.getElementById("fundButton")
 const balanceButton = document.getElementById("balanceButton")
 connectButton.onclick = connect
+disConnectButton.onclick = disConnect
 withdrawButton.onclick = withdraw
 fundButton.onclick = fund
 balanceButton.onclick = getBalance
 
+async function disConnect() {
+  if (typeof window.ethereum !== "undefined") {
+    try {
+      await window.ethereum.request({
+        "method": "wallet_revokePermissions",
+        "params": [
+          {
+            eth_accounts: {}
+          }
+        ]
+      });
+    } catch (error) {
+      console.log(error)
+    }
+  }else {
+    disConnectButton.innerHTML = "Please install MetaMask"
+  }
+}
+
 async function connect() {
   if (typeof window.ethereum !== "undefined") {
     try {
-      await ethereum.request({ method: "eth_requestAccounts" })
+      const anvilChainId = '0x7A69' // 31337 in hex
+      const currentChainId = await ethereum.request({ method: 'eth_chainId' })
+      if (currentChainId !== anvilChainId) {
+        await ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: anvilChainId }]
+        })
+      }
+      await ethereum.request({
+        method: "eth_requestAccounts",
+        params: []
+      })
       connectButton.innerHTML = "Connected"
       const accounts = await ethereum.request({ method: "eth_accounts" })
       console.log(accounts)
