@@ -1,6 +1,8 @@
 # Compiler files
 cache/
 out/
+zkout/
+.DS_store
 
 # Ignores development broadcast logs
 !/broadcast
