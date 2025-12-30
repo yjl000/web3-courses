@@ -10,6 +10,31 @@ pragma solidity ^0.8.24;
  * @dev 它实现了Chainlink VRFv2.5和Chainlink自动化功能
  */
 
+// Layout of the contract file:
+// version
+// imports
+// errors
+// interfaces, libraries, contract
+
+// Inside Contract:
+// Type declarations
+// State variables
+// Events
+// Modifiers
+// Functions
+
+// Layout of Functions:
+// constructor
+// receive function (if exists)
+// fallback function (if exists)
+// external
+// public
+// internal
+// private
+// view & pure functions
+
+error Raffle__NotEnoughEthSend();
+
 contract Raffle {
     uint256 private immutable i_entranceFee;
 
@@ -17,7 +42,10 @@ contract Raffle {
         i_entranceFee = entranceFee;
     }
 
-    function enterRaffle() public payable {}
+    /** 用external 因为只有外部调用，合约内部步调用此函数 */
+    function enterRaffle() external payable {
+        if (msg.value < i_entranceFee) revert Raffle__NotEnoughEthSend();
+    }
 
     function pickWinner() public {}
 
