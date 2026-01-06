@@ -24,6 +24,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 import {VRFCoordinatorV2Interface} from "chainlink/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
+import {AutomationCompatibleInterface} from "chainlink/src/v0.8/automation/AutomationCompatible.sol";
 import {VRFConsumerBaseV2} from "chainlink/src/v0.8/vrf/VRFConsumerBaseV2.sol";
 
 /**
@@ -35,11 +36,16 @@ import {VRFConsumerBaseV2} from "chainlink/src/v0.8/vrf/VRFConsumerBaseV2.sol";
  * @dev 它实现了Chainlink VRFv2.5和Chainlink自动化功能
  */
 
-contract Raffle is VRFConsumerBaseV2 {
+contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     /** Errors */
     error Raffle__NotEnoughEthSend();
     error Raffle__TransferFailed();
     error Raffle__RaffleNotOpen();
+    error Raffle__UpkeepNotNeeded(
+        uint256 currentBalance,
+        uint256 numPlayers,
+        uint256 raffleState
+    );
 
     /** Type Declaration */
     enum RaffleState {
@@ -99,8 +105,16 @@ contract Raffle is VRFConsumerBaseV2 {
         emit EnteredRaffle(msg.sender);
     }
 
-    function pickWinner() external {
-        if (block.timestamp - s_lastTimeStamp < i_interval) revert();
+    function performUpkeep(bytes calldata /* performData */) external override {
+        (bool upkeepNeeded, ) = checkUpkeep("");
+        // require(upkeepNeeded, "Upkeep not needed");
+        if (!upkeepNeeded) {
+            revert Raffle__UpkeepNotNeeded(
+                address(this).balance,
+                s_players.length,
+                uint256(s_raffleState)
+            );
+        }
         s_raffleState = RaffleState.CALCULATING;
         uint256 requestId = i_vrfCoordinator.requestRandomWords(
             i_gasLane,
@@ -129,8 +143,38 @@ contract Raffle is VRFConsumerBaseV2 {
         emit PickedWinner(winner);
     }
 
+    /**
+     * @dev This is the function that the Chainlink Keeper nodes call
+     * @dev 这是Chainlink Keeper节点调用的函数
+     * they look for `upkeepNeeded` to return True.
+     * 它们会检查`upkeepNeeded`是否返回True。
+     * the following should be true for this to return true:
+     * 要使此返回true，以下条件必须为true：
+     * 1. The time interval has passed between raffle runs.
+     * 1. 抽奖活动之间的时间间隔已过。
+     * 2. The lottery is open.  * 2. 抽奖已开启。
+     * 3. The contract has ETH. * 3. 合约有ETH。
+     * 4. There are players registered. * 4. 有已注册的玩家。
+     * 5. Implicitly, your subscription is funded with LINK.
+     * 5. 显然，您的订阅由LINK提供资金。
+     */
+    function checkUpkeep(
+        bytes memory /* checkData */
+    ) public view returns (bool upkeepNeeded, bytes memory /* performData */) {
+        bool isOpen = RaffleState.OPEN == s_raffleState;
+        bool timePassed = ((block.timestamp - s_lastTimeStamp) >= i_interval);
+        bool hasPlayers = s_players.length > 0;
+        bool hasBalance = address(this).balance > 0;
+        upkeepNeeded = (timePassed && isOpen && hasBalance && hasPlayers);
+        return (upkeepNeeded, "0x0");
+    }
+
     /** Getter Function */
     function getEntranceFee() public view returns (uint256) {
         return i_entranceFee;
+    }
+
+    function getRaffleState() public view returns (RaffleState) {
+        return s_raffleState;
     }
 }
