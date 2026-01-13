@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.19;
 
 import {Test} from "forge-std/Test.sol";
 import {Raffle} from "../../src/Raffle.sol";
@@ -25,17 +25,29 @@ contract RaffleTest is Test {
         (raffle, helperConfig) = deployRaffle.run();
         vm.deal(PLAYER, STARTING_BALANCE);
 
-        (
-            entranceFee,
-            interval,
-            vrfCoordinator,
-            gasLane,
-            subscriptionId,
-            callbackGasLimit
-        ) = helperConfig.getConfig();
+        HelperConfig.NetWorkConfig memory config = helperConfig.getConfig();
+        entranceFee = config.entranceFee;
+        interval = config.interval;
+        vrfCoordinator = config.vrfCoordinator;
+        gasLane = config.gasLane;
+        subscriptionId = config.subscriptionId;
+        callbackGasLimit = config.callbackGasLimit;
     }
 
-    function testRaffleInitializesInOpenState() public view {
+    function testRaffleInitializesInOpenState() public {
         assert(raffle.getRaffleState() == Raffle.RaffleState.OPEN);
+    }
+
+    function testRaffleRevertsWHenYouDontPayEnough() public {
+        vm.prank(PLAYER);
+        vm.expectRevert(Raffle.Raffle__NotEnoughEthSend.selector);
+        raffle.enterRaffle();
+    }
+
+    function testRaffleRecordsPlayerWhenTheyEnter() public {
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+        address playerRecorded = raffle.getPlayer(0);
+        assertEq(playerRecorded, PLAYER);
     }
 }
