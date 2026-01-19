@@ -14,7 +14,7 @@ contract RaffleTest is Test {
     uint256 interval;
     address vrfCoordinator;
     bytes32 gasLane;
-    uint64 subscriptionId;
+    uint256 subscriptionId;
     uint32 callbackGasLimit;
 
     address public PLAYER = makeAddr("player");
@@ -31,7 +31,7 @@ contract RaffleTest is Test {
         HelperConfig.NetWorkConfig memory config = helperConfig.getConfig();
         entranceFee = config.entranceFee;
         interval = config.interval;
-        vrfCoordinator = config.vrfCoordinator;
+        vrfCoordinator = config.vrfCoordinatorV2_5;
         gasLane = config.gasLane;
         subscriptionId = config.subscriptionId;
         callbackGasLimit = config.callbackGasLimit;
