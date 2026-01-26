@@ -24,3 +24,6 @@ vm.expectEmit(true, false, false, false, address(raffle)); // 只有indexed一�
 vm.warp(block.timestamp + interval + 1); // 为下一笔交易设置时间戳
 vm.roll(block.number + 1); // 为下一笔交易设置区块号
 
+vm.recordLogs(); // 记录下所有的日志,放到一个数组中
+
+vm.getRecordedLogs(); // 获取记录下的所有日志数组, 每个日志都是一个Vm.Log结构体

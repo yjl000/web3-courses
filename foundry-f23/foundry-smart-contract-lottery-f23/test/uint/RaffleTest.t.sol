@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import {Test} from "forge-std/Test.sol";
+import {Vm} from "forge-std/Vm.sol";
 import {Raffle} from "../../src/Raffle.sol";
 import {DeployRaffle} from "../../script/DeployRaffle.s.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
@@ -22,6 +23,15 @@ contract RaffleTest is Test {
 
     /** Event */
     event EnteredRaffle(address indexed player);
+
+    /** Modifier */
+    modifier raffleEntredAndTimePassed() {
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+        vm.warp(block.timestamp + interval + 1);
+        vm.roll(block.number + 1);
+        _;
+    }
 
     function setUp() external {
         DeployRaffle deployRaffle = new DeployRaffle();
@@ -108,5 +118,51 @@ contract RaffleTest is Test {
         vm.roll(block.number + 1);
         (bool upkeepNeeded, ) = raffle.checkUpkeep("");
         assert(upkeepNeeded);
+    }
+
+    function testPerformUpkeepCanOnlyRunIfCheckUpkeepIsTrue() public {
+        // Arrange
+        vm.prank(PLAYER);
+        raffle.enterRaffle{value: entranceFee}();
+        vm.warp(block.timestamp + interval + 1);
+        vm.roll(block.number + 1);
+
+        // Act / Assert
+        // It doesnt revert
+        raffle.performUpkeep("");
+    }
+
+    function testPerformUpkeepRevertsIfCheckUpkeepIsFalse() public {
+        // Arrange
+        uint256 currentBalance = 0;
+        uint256 numPlayers = 0;
+        Raffle.RaffleState rState = raffle.getRaffleState();
+        // Act / Assert
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Raffle.Raffle__UpkeepNotNeeded.selector,
+                currentBalance,
+                numPlayers,
+                rState
+            )
+        );
+        raffle.performUpkeep("");
+    }
+
+    function testPerformUpkeepUpdatesRaffleStateAndEmitsRequestId()
+        public
+        raffleEntredAndTimePassed
+    {
+        // Act
+        vm.recordLogs();
+        raffle.performUpkeep(""); // emit requestId
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        bytes32 requestId = entries[1].topics[1];
+
+        // Asserts
+        Raffle.RaffleState raffleState = raffle.getRaffleState();
+        // requestId = raffle.getLastRequestId();
+        assert(uint256(requestId) > 0);
+        assert(uint(raffleState) == 1); // 0 open 1 calculating
     }
 }
