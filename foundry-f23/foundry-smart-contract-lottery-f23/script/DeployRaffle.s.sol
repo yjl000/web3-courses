@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {Script} from "forge-std/Script.sol";
+import {Script, console} from "forge-std/Script.sol";
+import {VRFCoordinatorV2_5Mock} from "chainlink/src/v0.8/vrf/mocks/VRFCoordinatorV2_5Mock.sol";
 import {HelperConfig} from "./HelperConfig.s.sol";
 import {Raffle} from "../src/Raffle.sol";
 import {CreateSubscription, AddConsumer, FundSubscription} from "./Interactions.s.sol";
@@ -20,19 +21,19 @@ contract DeployRaffle is Script {
         address link = config.link;
         address account = config.account;
 
-        if (subscriptionId == 0) {
-            CreateSubscription createSubscription = new CreateSubscription();
-            (subscriptionId, ) = createSubscription.createSubscription(
-                vrfCoordinatorV2_5,
-                account
-            );
-            FundSubscription fundSubscription = new FundSubscription();
-            fundSubscription.fundSubScription(
-                vrfCoordinatorV2_5,
-                subscriptionId,
-                link
-            );
-        }
+        // if (subscriptionId == 0) {
+        CreateSubscription createSubscription = new CreateSubscription();
+        (subscriptionId, ) = createSubscription.createSubscription(
+            vrfCoordinatorV2_5,
+            account
+        );
+        FundSubscription fundSubscription = new FundSubscription();
+        fundSubscription.fundSubScription(
+            vrfCoordinatorV2_5,
+            subscriptionId,
+            link
+        );
+        // }
 
         vm.startBroadcast();
         Raffle raffle = new Raffle(
