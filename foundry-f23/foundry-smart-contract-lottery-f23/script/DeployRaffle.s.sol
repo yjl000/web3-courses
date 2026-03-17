@@ -11,45 +11,43 @@ contract DeployRaffle is Script {
         HelperConfig helperConfig = new HelperConfig();
         AddConsumer addComsumer = new AddConsumer();
         HelperConfig.NetWorkConfig memory config = helperConfig.getConfig();
-        uint256 entranceFee = config.entranceFee;
-        uint256 interval = config.interval;
-        address vrfCoordinatorV2_5 = config.vrfCoordinatorV2_5;
-        bytes32 gasLane = config.gasLane;
-        uint256 subscriptionId = config.subscriptionId;
-        uint32 callbackGasLimit = config.callbackGasLimit;
-        address link = config.link;
-        uint256 deployerKey = config.deployerKey;
 
-        // if (subscriptionId == 0) {
-        CreateSubscription createSubscription = new CreateSubscription();
-        (subscriptionId, ) = createSubscription.createSubscription(
-            vrfCoordinatorV2_5,
-            deployerKey
-        );
-        FundSubscription fundSubscription = new FundSubscription();
-        fundSubscription.fundSubScription(
-            vrfCoordinatorV2_5,
-            subscriptionId,
-            link,
-            deployerKey
-        );
-        // }
+        if (config.subscriptionId == 0) {
+            CreateSubscription createSubscription = new CreateSubscription();
+            (
+                config.subscriptionId,
+                config.vrfCoordinatorV2_5
+            ) = createSubscription.createSubscription(
+                config.vrfCoordinatorV2_5,
+                config.account
+            );
+            FundSubscription fundSubscription = new FundSubscription();
+            fundSubscription.fundSubScription(
+                config.vrfCoordinatorV2_5,
+                config.subscriptionId,
+                config.link,
+                config.account
+            );
+            // config.subscriptionId = subscriptionId;
+            helperConfig.setConfig(block.chainid, config);
+        }
 
-        vm.startBroadcast();
+        vm.startBroadcast(config.account);
         Raffle raffle = new Raffle(
-            entranceFee,
-            interval,
-            vrfCoordinatorV2_5,
-            gasLane,
-            subscriptionId,
-            callbackGasLimit
+            config.entranceFee,
+            config.interval,
+            config.vrfCoordinatorV2_5,
+            config.gasLane,
+            config.subscriptionId,
+            config.callbackGasLimit
         );
         vm.stopBroadcast();
+
         addComsumer.addConsumer(
             address(raffle),
-            vrfCoordinatorV2_5,
-            subscriptionId,
-            deployerKey
+            config.vrfCoordinatorV2_5,
+            config.subscriptionId,
+            config.account
         );
         return (raffle, helperConfig);
     }
